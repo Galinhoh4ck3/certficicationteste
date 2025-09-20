@@ -4,7 +4,6 @@ on:
       test_suit:
         description: Test Suite
         type: choice
-        value: functional
         options:
-
+          - functional
           - regression
