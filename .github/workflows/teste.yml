@@ -1,32 +1,31 @@
-name: Executar com Matriz Personalizada
+name: Publish Docker image
 
-# Este workflow é acionado manualmente
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main   # Publica a imagem quando houver push na branch main
 
-# Define um único job (tarefa)
 jobs:
-  exibir-combinacoes:
-    name: "Combinações da Matriz: ${{ matrix.color }} e ${{ matrix.animal }}"
-    
-    # A matriz de execução.
-    strategy:
-      matrix:
-        color: [green, pink]
-        animal: [owl, magpie]
-        include:
-          - color: blue
-            animal: owl
-          - color: pink
-            animal: magpie
-          
-    # O sistema operacional para executar o job
+  build-and-push:
     runs-on: ubuntu-latest
 
-    # As etapas (steps) do job
     steps:
-      - name: "Exibir as variáveis da matriz"
-        run: |
-          echo "Cor: ${{ matrix.color }}"
-          echo "Animal: ${{ matrix.animal }}"
-          echo "---"
+      # Passo 1: Fazer checkout do código
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Passo 2: Autenticar no GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Passo 3: Buildar a imagem
+      - name: Build Docker image
+        run: docker build -t ghcr.io/${{ github.repository }}:latest .
+
+      # Passo 4: Fazer push da imagem
+      - name: Push Docker image
+        run: docker push ghcr.io/${{ github.repository }}:latest
