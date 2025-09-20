@@ -1,9 +1,52 @@
+name: Exemplo de Workflow com Matrix
+
+# O workflow é acionado manualmente pela interface do GitHub
 on:
   workflow_dispatch:
     inputs:
       test_suit:
-        description: Test Suite
+        description: 'Qual suite de testes executar?'
         type: choice
+        default: 'unit'
         options:
-          - functional
-          - regression
+          - 'unit'
+          - 'integration'
+          - 'functional'
+
+# Define os jobs (tarefas) que serão executados
+jobs:
+  build_and_test:
+    # O nome do job
+    name: Build e Testes (${{ matrix.node_version }}, ${{ matrix.os }})
+    
+    # A matriz de execução.
+    strategy:
+      matrix:
+        node_version: [16.x, 18.x, 20.x]
+        os: [ubuntu-latest, macos-latest]
+        include:
+          # Adiciona uma configuração extra para o Node.js 20.x no Windows
+          - node_version: 20.x
+            os: windows-latest
+          
+    # O ambiente de execução para este job
+    runs-on: ${{ matrix.os }}
+
+    # As etapas (steps) do job
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js ${{ matrix.node_version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Executar testes de ${{ github.event.inputs.test_suit }}
+        run: npm run test-${{ github.event.inputs.test_suit }}
+        env:
+          NODE_ENV: test
