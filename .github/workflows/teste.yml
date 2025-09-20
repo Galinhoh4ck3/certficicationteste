@@ -3,14 +3,14 @@ name: Publish Docker image
 on:
   push:
     branches:
-      - main   # Publica a imagem quando houver push na branch main
+      - main   # Publica quando fizer push na branch main
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # Passo 1: Fazer checkout do código
+      # Passo 1: Checkout do código
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -22,10 +22,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Passo 3: Buildar a imagem
-      - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository }}:latest .
+      # Definir variáveis de imagem (forçando lowercase)
+      - name: Set image name
+        id: vars
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/certficicationteste" >> $GITHUB_ENV
 
-      # Passo 4: Fazer push da imagem
+      # Passo 3: Build da imagem com duas tags
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $IMAGE:latest \
+            -t $IMAGE:${{ github.sha }} .
+
+      # Passo 4: Push das duas tags
       - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository }}:latest
+        run: |
+          docker push $IMAGE:latest
+          docker push $IMAGE:${{ github.sha }}
