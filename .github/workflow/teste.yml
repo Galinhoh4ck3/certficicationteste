@@ -1,0 +1,9 @@
+on:
+  workflow_dispatch:
+    inouts:
+      test_suit:
+        description: Test Suite
+        type: choice
+        value: functional
+        options:
+          - regression
