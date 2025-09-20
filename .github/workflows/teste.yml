@@ -1,52 +1,32 @@
-name: Exemplo de Workflow com Matrix
+name: Executar com Matriz Personalizada
 
-# O workflow é acionado manualmente pela interface do GitHub
+# Este workflow é acionado manualmente
 on:
   workflow_dispatch:
-    inputs:
-      test_suit:
-        description: 'Qual suite de testes executar?'
-        type: choice
-        default: 'unit'
-        options:
-          - 'unit'
-          - 'integration'
-          - 'functional'
 
-# Define os jobs (tarefas) que serão executados
+# Define um único job (tarefa)
 jobs:
-  build_and_test:
-    # O nome do job
-    name: Build e Testes (${{ matrix.node_version }}, ${{ matrix.os }})
+  exibir-combinacoes:
+    name: "Combinações da Matriz: ${{ matrix.color }} e ${{ matrix.animal }}"
     
     # A matriz de execução.
     strategy:
       matrix:
-        node_version: [16.x, 18.x, 20.x]
-        os: [ubuntu-latest, macos-latest]
+        color: [green, pink]
+        animal: [owl, magpie]
         include:
-          # Adiciona uma configuração extra para o Node.js 20.x no Windows
-          - node_version: 20.x
-            os: windows-latest
+          - color: blue
+            animal: owl
+          - color: pink
+            animal: magpie
           
-    # O ambiente de execução para este job
-    runs-on: ${{ matrix.os }}
+    # O sistema operacional para executar o job
+    runs-on: ubuntu-latest
 
     # As etapas (steps) do job
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
-
-      - name: Configurar Node.js ${{ matrix.node_version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node_version }}
-          cache: 'npm'
-
-      - name: Instalar dependências
-        run: npm ci
-
-      - name: Executar testes de ${{ github.event.inputs.test_suit }}
-        run: npm run test-${{ github.event.inputs.test_suit }}
-        env:
-          NODE_ENV: test
+      - name: "Exibir as variáveis da matriz"
+        run: |
+          echo "Cor: ${{ matrix.color }}"
+          echo "Animal: ${{ matrix.animal }}"
+          echo "---"
