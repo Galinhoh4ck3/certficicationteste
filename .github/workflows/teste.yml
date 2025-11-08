@@ -1,41 +1,30 @@
-name: Publish Docker image
+name: 4. Exemplo de Matrix com Dispatch Manual
 
+# 1. Este é o gatilho manual (workflow_dispatch)
 on:
-  push:
-    branches:
-      - main   # Publica quando fizer push na branch main
+  workflow_dispatch:
 
 jobs:
-  build-and-push:
+  # 2. Este é o nome do seu job
+  matrix-job:
     runs-on: ubuntu-latest
-
+    
+    # 3. Esta é a matriz exata da sua imagem
+    strategy:
+      fail-fast: false  # Opcional: continua rodando outros jobs mesmo se um falhar
+      matrix:
+        color: [green, pink]
+        animal: [owl, magpie]
+        include:
+          - color: blue
+            animal: owl
+          - color: pink
+            animal: magpie
+            
+    # 4. Estes passos serão executados para cada um dos 5 jobs da matriz
     steps:
-      # Passo 1: Checkout do código
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      # Passo 2: Autenticar no GitHub Container Registry
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Definir variáveis de imagem (forçando lowercase)
-      - name: Set image name
-        id: vars
-        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/certficicationteste" >> $GITHUB_ENV
-
-      # Passo 3: Build da imagem com duas tags
-      - name: Build Docker image
+      - name: Exibir a combinação da matriz
         run: |
-          docker build \
-            -t $IMAGE:latest \
-            -t $IMAGE:${{ github.sha }} .
-
-      # Passo 4: Push das duas tags
-      - name: Push Docker image
-        run: |
-          docker push $IMAGE:latest
-          docker push $IMAGE:${{ github.sha }}
+          echo "Iniciando job para a combinação:"
+          echo "Cor: ${{ matrix.color }}"
+          echo "Animal: ${{ matrix.animal }}"
